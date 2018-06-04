@@ -7,10 +7,11 @@ Installation requiremets
 ```
 rosdep install --from-path squirrel_prediction -i -y
 ```
-Running  the service:
+Running services:
 ===============
 ```
 rosrun squirrel_relations_prediction predict_relations_server.py 
+rosrun squirrel_relations_prediction recommend_relations_server.py 
 ```
 Service call for relations prediction:
 ===============
@@ -31,8 +32,8 @@ rosservice call /squirrel_relations_prediction "data_path: '/home/pathto_ws/catk
 input_file: 'known.csv'
 output_file: 'predicted.csv'
 number_of_columns: 3" 
-finished: True
 ```
-
+Service call for actions recommendation:
+===============
 
 

@@ -154,7 +154,7 @@ def mvm_test_orig(xdatacls,xalpha):
               spre[:,i]=Z.argmax(0)
               zpre[:,i]=Z.max(0)
               
-        elif ycategory==1:
+        elif ycategory==1: ## category cells =2 {-1,0,+1}^n
           yinterval=np.arange(nyrange0)
           iyrange=xdata_tra[2][istart:istart+nlength]   
           nyrange=len(yinterval)

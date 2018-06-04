@@ -21,6 +21,9 @@
 ##   along with MMMVR.  If not, see <http://www.gnu.org/licenses/>.
 ##
 ## ***********************************************************************/
+## Edit: 2018, Senka Krivic
+## added: confidences calculations
+## email: krivic.senka@gmail.com
 ######################
 import time
 import numpy as np 
@@ -93,27 +96,28 @@ class cls_glmmodel:
     xdatacls      data class
     """
 
-    ## print('GLM')
+    ##print('GLM')
 
-    xdata=xdatacls.xdata_tra
-    mdata=xdata[0].shape[0]
-    nrow=xdatacls.nrow
-    ncol=xdatacls.ncol
+    xdata=xdatacls.xdata_tra ## list contains 3 arrays [0] rows, [1] cols, [2] values of known data in the table
+    mdata=xdata[0].shape[0] ## number of rows of xdata[0]
+    nrow=xdatacls.nrow ## total number of rows = number of objects
+    ncol=xdatacls.ncol ##total number of cols= number of objects * number of properties
 
-    tydim=xdata[2].shape
+    tydim=xdata[2].shape # should be same value as mdata
     if len(tydim)==1:
       nydim=1
     else:
-      nydim=tydim[1]
+      nydim=tydim[1] #1
 
   ## =1 multiplicative model =0 additive model  
 
-    col_sum=np.zeros((nrow,nydim))
-    row_sum=np.zeros((ncol,nydim))
-    col_num=np.zeros(nrow)
-    row_num=np.zeros(ncol)
+    col_sum=np.zeros((nrow,nydim)) #contains sum of known values per column
+    row_sum=np.zeros((ncol,nydim))  #contains sum of known values per row
+    col_num=np.zeros(nrow) #contains number of known values per column
+    row_num=np.zeros(ncol) #contains number of known values per row
+    conf = np.zeros((nrow,ncol)) # here are confidences (informativeness of data) is stored
 
-    if xdatacls.glm_model.rfunc is not None:
+    if xdatacls.glm_model.rfunc is not None:  ## None is for recommender
       xvalue=xdatacls.glm_model.rfunc.rfunc_inverse(xdata[2])
       xdata[2]=xvalue
     else:
@@ -136,6 +140,22 @@ class cls_glmmodel:
 
     col_mean=col_sum/np.outer(col_num,np.ones(nydim))
     row_mean=row_sum/np.outer(row_num,np.ones(nydim))
+
+    ## added for std -----------------------------
+    ## computing standard deviation
+    col_std=np.zeros((nrow,nydim)) # std of the column
+    row_std=np.zeros((ncol,nydim)) # std of the row
+    for idata in range(mdata):
+      vdata=xvalue[idata]
+      ## computing variance first
+      col_std[xdata[0][idata]]+=(vdata-col_mean[xdata[0][idata]])**2 #calculating variance per each value in col
+      row_std[xdata[1][idata]]+=(vdata-row_mean[xdata[1][idata]])**2 #calculating variance per each value in row
+
+    col_std=np.sqrt(col_std/np.outer(col_num,np.ones(nydim))) #compute std
+    row_std=np.sqrt(row_std/np.outer(row_num,np.ones(nydim))) #compute std
+    
+    ## -------------------------------------------
+
     if nydim==1:
       col_mean=np.squeeze(col_mean)
       row_mean=np.squeeze(row_mean)
@@ -144,7 +164,16 @@ class cls_glmmodel:
       irow=xdata[0][idata]
       icol=xdata[1][idata]
       xdata[2][idata]+=-col_mean[irow]-row_mean[icol]+total_mean 
-
+  
+    ## computing confidences --------------------------------------------------
+    for irow in range(nrow):
+      for icol in range(ncol):
+        conf[irow][icol]=((1-row_std[icol])*row_num[icol]/nrow + (1-col_std[irow])*col_num[irow]/ncol)/2
+        #conf[irow][icol]=(1-col_std[irow])*col_num[irow]/ncol 
+    for idata in range(mdata):
+        irow=xdata[0][idata]
+        icol=xdata[1][idata]
+        conf[irow][icol]=1.0 #set known values confs to 1
     product_correction=1.0
     ## xdata[2]=np.exp(xdata[2])-product_correction
     ## self.col_mean=np.exp(col_mean)
@@ -155,6 +184,18 @@ class cls_glmmodel:
     self.total_mean=total_mean
     ## to restore the expected value from 0 to 1 in case of gemetric mean
     self.product_correction=product_correction  
+
+    ## added for std -----------------------------
+    self.col_num=col_num
+    self.row_num=row_num
+    self.col_std=col_std
+    self.row_std=row_std
+    self.nrow=nrow
+    self.ncol=ncol
+    self.xdata0=xdata
+    self.conf=conf
+    ## ------------------------------------------
+
 
     return
 ## ###########################################################

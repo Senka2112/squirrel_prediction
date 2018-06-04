@@ -327,7 +327,7 @@ class cls_label_files:
           vconf=Zrow[irow][2][i]
           vpred=Y0[np.abs(Y0-vpred).argmin()]
           ## confidence predicted via exponential distribution
-          vconf=1-np.exp(-xdatacls.confidence_scale*np.abs(vconf-0.5))
+          vconf=1-np.exp(-xdatacls.confidence_scale*np.abs(vconf-0.5)) # calculating confidence for predictions
           xdata[irow,icol,0]=vpred
           xdata[irow,icol,1]=vconf
 
@@ -351,7 +351,7 @@ class cls_label_files:
           ## confidences
           for ifeature in range(self.nfeature):
             icol=ifeature+self.nfeature*iobject2
-            vconf=xdata[irow,icol,1]
+            vconf=xdata[irow,icol,1] #conf value
             sline+=','+str('%6.4f'%vconf)
           fout.write(sline+'\n')
     elif self.irowcol==1:

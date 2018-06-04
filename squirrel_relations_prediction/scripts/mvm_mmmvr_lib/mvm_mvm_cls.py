@@ -88,9 +88,9 @@ class cls_mvm(base.cls_data):
                           ## =3 alternate between worst case and random  
 
     self.nrepeat=1    ## number of repetation of the folding
-    self.nfold=5      ## number of folds
+    self.nfold=1      ## number of folds (was 5)
     self.nrepeat0=1   ## number of effective repetation of the folding
-    self.nfold0=5     ## number of effective folds
+    self.nfold0=1     ## number of effective folds (was 5)
     
     self.ieval_type=0     ## =0 category, =1 RMSE , =2 MAE 
     self.ibinary=0        ## =1 Y0=[-1,+1], =0 [0,1,...,categorymax-1]
@@ -439,7 +439,7 @@ class cls_mvm(base.cls_data):
       ## =================================
       ## data transformation
       ## self.glm_model.rfunc=mvm_glmmodel_cls.rfunc_exp_cls()
-      self.glm_model.mvm_glm_link(self)
+      self.glm_model.mvm_glm_link(self) ## here calculating confidences 
       
       mvm_prepare.mvm_ygrid(self)
     elif self.category==1:
