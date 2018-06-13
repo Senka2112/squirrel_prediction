@@ -30,6 +30,34 @@ class EGreedy(object):
 
         return (i,j)
     
+    def actionspec(self,conf,row,column):
+        
+        crow=conf[row,:]
+        ccol=conf[:,column]
+        i=row
+        j=column
+        #print(np.where(crow==min(crow)))
+        #print(np.where(ccol==min(ccol)))
+        
+        min_ind=np.argwhere(crow==min(crow))#get all min values indices in row
+        print(min_ind[nr.choice(min_ind.shape[0])])
+
+        if min(crow)<min(ccol):
+            min_ind=np.argwhere(crow==min(crow))#get all min values indices in row
+            j=min_ind[nr.choice(min_ind.shape[0])].item()
+            print('row ', i,j)
+        else:
+            min_ind=np.argwhere(ccol==min(ccol))#get all min values indices in col
+            i=min_ind[nr.choice(min_ind.shape[0])].item()
+            print('col ', i,j)
+
+
+       # if nr.rand() < self.epsilon:
+        #    (i,j)=self.rand_action(conf)
+        
+
+        return (i,j)
+    
     def rand_action(self,conf):
         
         unknownc=np.argwhere(conf<1)#remove known values

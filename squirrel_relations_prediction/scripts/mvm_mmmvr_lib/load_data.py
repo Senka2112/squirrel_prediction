@@ -313,6 +313,8 @@ class cls_label_files:
       vval=xdata_rel[2][idata]
       xdata[irow,icol,0]=vval
       xdata[irow,icol,1]=1.0
+      
+
           
     ## load test items as predictions
     for irow in range(self.nrow):
@@ -330,48 +332,69 @@ class cls_label_files:
           vconf=1-np.exp(-xdatacls.confidence_scale*np.abs(vconf-0.5)) # calculating confidence for predictions
           xdata[irow,icol,0]=vpred
           xdata[irow,icol,1]=vconf
+          #print('here ', vconf)
+    
+    ## make new conf values
+    xdataclspom=xdatacls
+    xdataclspom.category=3 #needed for new conf calculations
+    xdataclspom.prepare_fold_training(1)
+    nrow=xdatacls.nrow ## total number of rows = number of objects
+    ncol=xdatacls.ncol ##total number of cols= number of objects * number of properties
+    conf=xdataclspom.glm_model.conf
+    number_of_columns=self.nfeature
+    for irow in range(nrow):
+     for icol in range(ncol):
+#       obj1=irow
+#       rel=icol%number_of_columns
+#       obj2=(icol-rel)/number_of_columns
+#       irown=obj1*len(conf)+obj2
+#       icoln=rel
+       #print(conf[irow][icol])
+       xdata[irow,icol,1]=conf[irow][icol]
+
+
 
     ## export xdata into test file
     #fout=open(self.sbasedir+filename, 'w')
     fout=open(self.sbasedir+self.listout, 'w')
-    #print('<<<   writiting results in file')
-    fout.write("'object1','object2',"+'\n')
-    if self.irowcol==0:
+    #print('<<<   writiting results in file ', self.irowcol)
+    #fout.write("'object1','object2',"+'\n')
+    if self.irowcol==0: #for planning
       for irow in range(self.nrow):
         iobject1=irow
         for iobject2 in range(self.nobject):
           sobject1=self.dobject_inv[iobject1]
           sobject2=self.dobject_inv[iobject2]
-          sline="'"+sobject1+"'"+','+"'"+sobject2+"'"
+          sline=""
           ## predictions
           for ifeature in range(self.nfeature):
             icol=ifeature+self.nfeature*iobject2
             vpred=xdata[irow,icol,0]
-            sline+=','+str(int(vpred))
+            sline+=' '+str(int(vpred))
           ## confidences
           for ifeature in range(self.nfeature):
             icol=ifeature+self.nfeature*iobject2
-            vconf=xdata[irow,icol,1] #conf value
-            sline+=','+str('%6.4f'%vconf)
+            vconf=xdata[irow,icol,1]
+            sline+=' '+str('%6.4f'%vconf)
           fout.write(sline+'\n')
     elif self.irowcol==1:
       for iobject1 in range(self.nobject):
         for iobject2 in range(self.nobject):
           sobject1=self.dobject_inv[iobject1]
           sobject2=self.dobject_inv[iobject2]
-          sline="'"+sobject1+"'"+','+"'"+sobject2+"'"
+          sline=""
           ## predictions
           for ifeature in range(self.nfeature):
             irow=ifeature+self.nfeature*iobject1
             icol=iobject2
             vpred=xdata[irow,icol,0]
-            sline+=','+str(int(vpred))
+            sline+=' '+str(int(vpred))
           ## confidences
           for ifeature in range(self.nfeature):
             icol=ifeature+self.nfeature*iobject1
             icol=iobject2
             vconf=xdata[irow,icol,1]
-            sline+=','+str('%6.4f'%vconf)
+            sline+=' '+str('%6.4f'%vconf)
           fout.write(sline+'\n')
        
     fout.close()

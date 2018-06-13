@@ -13,12 +13,12 @@ import mvm_mmmvr_lib.egreedy as egreedy
 
 rospy.init_node('recommend_action')
 
-def test_mvm_main(workmode, data_path, input_file, number_of_columns):
+def test_mvm_main(workmode, data_path, input_file, number_of_columns,column, row, specific):
 
   params=mmr_setparams.cls_params()
 
   xdatacls=mvm_mvm_cls.cls_mvm()
-  xplore=egreedy.EGreedy(0.2)
+  xplore=egreedy.EGreedy(0.05)
   nfold=xdatacls.nfold
 
   nfold0=nfold    ## n-fold cross validation
@@ -32,7 +32,7 @@ def test_mvm_main(workmode, data_path, input_file, number_of_columns):
     ctables.irowcol=xdatacls.rowcol  ## set the row-col or col-row processing
     
     (xdata,nrow2,ncol2,ifixtrain,ifixtest)=ctables.load_twofiles()
-    print("broj redova ",nrow2)
+   # print("broj redova ",nrow2)
     print('xdata size lines',len(xdata))
     print('number of columns',len(xdata[0]))
     print('line 1 ',xdata[0][0], ' ',xdata[0][1],' ', xdata[0][2])
@@ -52,7 +52,7 @@ def test_mvm_main(workmode, data_path, input_file, number_of_columns):
     xdatacls.prepare_repetition_folding(init_train_size=100)
     nrepeat0=xdatacls.nrepeat0
     nfold0=xdatacls.nfold0
-    xdatacls.category=3
+    xdatacls.category=3 #needed for new conf calculations
     
 
     # ----------------------------------------------------------------------
@@ -76,14 +76,29 @@ def test_mvm_main(workmode, data_path, input_file, number_of_columns):
         #print(xdatacls.glm_model.row_mean)
         #print(xdatacls.glm_model.xdata0[0])
         #print(xdatacls.glm_model.xdata0[1])
-        act=xplore.action(xdatacls.glm_model.conf)
-        print(act)
+        if not specific:
+            act=xplore.action(xdatacls.glm_model.conf)
+            print(act)
+        else:
+            obj2=row%nrow2 #nrow2 is number of objects
+            print('obj2 :',obj2)
+            obj1=(row-obj2)/nrow2
+            print('obj1 :',obj1)
+            rown=obj1
+            columnn=obj2*number_of_columns+column
+            print('rown: ',rown)
+            print('coln: ',columnn)
+            act=xplore.actionspec(xdatacls.glm_model.conf, rown, columnn)
+        
+        #transforming from learning matrix to format stored in files             
         obj1=act[0]
         rel=act[1]%number_of_columns
         obj2=(act[1]-rel)/number_of_columns
-	actn=np.zeros(2)
+        print('rec obj2 :',obj2)
+        print('rec obj1 :',obj1)
+        actn=np.zeros(2)
         actn[0]=obj1*len(xdatacls.glm_model.conf)+obj2
-	actn[1]=rel
+        actn[1]=rel
         print(actn)
 
 
@@ -93,7 +108,7 @@ def test_mvm_main(workmode, data_path, input_file, number_of_columns):
 
 def callback(data):
     #input
-    act=test_mvm_main(0, data.data_path, data.input_file, data.number_of_columns)
+    act=test_mvm_main(0, data.data_path, data.input_file, data.number_of_columns, data.column, data.row, data.specific )
     #print(act)
     resp = RecommendActionResponse()
     resp.row=act[0]

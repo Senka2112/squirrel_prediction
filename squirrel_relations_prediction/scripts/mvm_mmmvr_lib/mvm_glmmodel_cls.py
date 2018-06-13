@@ -168,8 +168,12 @@ class cls_glmmodel:
     ## computing confidences --------------------------------------------------
     for irow in range(nrow):
       for icol in range(ncol):
-        conf[irow][icol]=((1-row_std[icol])*row_num[icol]/nrow + (1-col_std[irow])*col_num[irow]/ncol)/2
-        #conf[irow][icol]=(1-col_std[irow])*col_num[irow]/ncol 
+        #conf[irow][icol]=((1-row_std[icol])*row_num[icol]/nrow + (1-col_std[irow])*col_num[irow]/ncol)/2
+        #conf[irow][icol]=(1-row_std[icol])*row_num[icol]/nrow #cols
+        #conf[irow][icol]=row_num[icol]/nrow #row pure
+        #conf[irow][icol]=(1-col_std[irow])*col_num[irow]/ncol  #rows
+        conf[irow][icol]=(row_num[icol]/nrow + col_num[irow]/ncol)/2 #rowscols
+               
     for idata in range(mdata):
         irow=xdata[0][idata]
         icol=xdata[1][idata]

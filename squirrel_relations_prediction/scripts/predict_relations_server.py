@@ -63,6 +63,8 @@ def test_mvm_main(workmode, data_path, input_file, output_file, number_of_column
    
       for ifold in range(nfold0):
         xdatacls.prepare_fold_training(ifold)
+        #print(xdatacls.glm_model.row_num)
+        #print(xdatacls.glm_model.conf)
 
     # validation to choose the best parameters
         xdatacls.set_validation()
